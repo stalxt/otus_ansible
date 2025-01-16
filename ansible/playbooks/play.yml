@@ -1,0 +1,41 @@
+---
+- name: "Install nginx"
+  hosts: all
+  become: true
+  vars_files:
+    - vars/default.yml
+
+  tasks:
+    - name: "update"
+      apt:
+        update_cache=yes
+
+    - name: "nginx | install"
+      apt:
+        name: "nginx"
+        state: latest
+      notify:
+        - restart nginx
+
+    - name: "Create nginx config file from tampalte"
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      notify:
+        - reload nginx
+      tags:
+        - nginx-configuration
+
+  handlers:
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
+        enabled: yes
+
+    - name: reload nginx
+      systemd:
+        name: nginx
+        state: reloaded
+
+...
